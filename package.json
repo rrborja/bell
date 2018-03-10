@@ -16,9 +16,10 @@
     "hubot-pugme": "^0.1.0",
     "hubot-redis-brain": "0.0.2",
     "hubot-rules": "^0.1.0",
-    "hubot-scripts": "^2.5.16",
+    "hubot-scripts": "^2.17.2",
     "hubot-shipit": "^0.1.1",
     "hubot-slack": "^3.2.1",
+    "hubot-slack-reaction": "0.0.4",
     "hubot-youtube": "^0.1.2"
   },
   "engines": {
