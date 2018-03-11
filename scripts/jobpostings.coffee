@@ -67,7 +67,7 @@ module.exports = (robot) ->
 
       # We'll provide a way to have the admins post without restriction.
       #
-      # However, one word commands (even though they have whitespaces beside of it)
+      # However, one word commands (even though if they contain whitespaces beside of it)
       # are processed and are not announced. To prevent that, the admin should
       # add at least one word after the first word. For example, test hello world.
       if privileged res.message.user.slack
@@ -78,7 +78,9 @@ module.exports = (robot) ->
       # the correct formatting to post in the channel. Let them feel that they are still
       # welcome to post and give them instructions on how to fix it.
       deletePrevMessage msgId
-      dmUserSilently(res.message.user.id, "Unfortunately, your job posting has been rejected here. I have sent you a direct message to explain the reasons and how you should fix it. We apologize for this.")
+      dmUserSilently(res.message.user.id, "Unfortunately, your job posting has been " +
+          "rejected here. I have sent you a direct message to explain the reasons " +
+          "and how you should fix it. We apologize for this.")
       dmUserDirectly(userId, politeMessageToRecruiter(res.message.text))
 
     else

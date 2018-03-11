@@ -1,3 +1,4 @@
+# It should be obvious but this is the rule
 jobDescriptionFormat = /[\s]*^company\s*:\s*(.{1,50})[\|\n][\s\w]*location\s*:\s*(.{1,50})[\|\n][\s\w]*pay *range\s*:\s*([\$]?[\d,]+(?: ?(?:-|to) ?\$?[\d,]+)?\/?(?:hr|wk|mo|yr|hour|week|month|year)?)[\|\n][\s\w]*job *title\s*:\s*(.{5,50})[\|\n][\s\w]*description\s*:\s*((?:.|\n){20,260})(?:.*)[\|\n][\s\w]*link\s*:\s*(.*)\s*$\w*/i
 
 politeMessageToRecruiter = (returnedMsg) -> "The job description you have just posted " +
@@ -144,10 +145,17 @@ reformatJobPosting = (msgId, title, description, company, approxCompanyLink, loc
         author_name: company
         author_link: approxCompanyLink
         fields: [
+          # We'll also heuristically guess the link to the company as stated in the job description
+          # This is not a 100% guarantee and it will only depend if the poster spelled the company
+          # name right and the company exists. \
           {title: "Location", value: "<https://www.google.com/maps?q=#{company}+#{location}|#{location}>", short: true},
+
+          # We'll also link the pay range to a page to check the average salary  of that job title
+          # in the job posting
           {title: "Pay range", value: "<https://www.google.com/search?q=#{title}+average+salary&btnI|#{payrange}>", short: true}
         ]
         actions: [
+          # This is the link that the poster supplied. Visit at your own risk!
           {type: "button", text: ":books: Learn more...", url: link, style: "primary", "unfurl_links": false, "unfurl_media": false}
         ]
         "unfurl_links": false
