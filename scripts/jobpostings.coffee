@@ -2,173 +2,91 @@
 #
 # Company | Location | Pay range | Job Title | Tweet size description | Link
 
-politeMessageToRecruiter = (returnedMsg) -> "The job description you have just posted " +
-  "did not follow the formatting guideline so we deleted it.\n\n" +
-  "Here's how it should be done:\n" +
-  "Company: `The company who is hiring`\n" +
-  "Location: `The location of the company`\n" +
-  "Pay range: `The pay range`\n" +
-  "Job title: `The job title`\n" +
-  "Description: `This is your opportunity to pitch your sales talk up to 260 characters long`\n" +
-  "Link: `The external link to the job posting`\n\n" +
-  "Here's an example:\n" +
-  "Company: *Philly Dev*\n" +
-  "Location: *Philadelphia, PA*\n" +
-  "Pay range: *112358-132134*\n" +
-  "Job title: *Slack Bot Developer*\n" +
-  "Description: *Our community in Philly is in need of talented bot developers to develop an intelligent system in order to launch skynet before judgment day.*\n" +
-  "Link: http://phillydev.org\n\n"  +
-  "We will return back the job posting you have just sent in hopes that you will correct it:\n" +
-  "```#{returnedMsg}```\n\n" +
-  "Thank you!"
-
-welcomeMessage = "Welcome to the <#job-postings> channel where everyone can advertise their " +
-  "job postings whether you are a recruiter or not. If you are seeking new opportunities, this is the right place!\n\n" +
-  "This channel employs common sense rules to make this channel friendly for *everyone*.\n" +
-  "1. Simply follow this format:\n" +
-  "```Company: _______________________________________\n" +
-  "Location: ______________________________________\n" +
-  "Pay range: _____________________________________\n" +
-  "Job title: _____________________________________\n" +
-  "Description: ___________________________________\n" +
-  "Link: __________________________________________```\n" +
-  "2. Do not combine them in a single line. Separate the fields by a new line\n" +
-  "3. The description must be up to 260 characters.\n" +
-  "4. All fields are not optional.\n" +
-  "5. Anyone can reply to a posting by starting a separate thread but no one can broadcast their replies.\n\n" +
-  "If your posting does not meet all five rules, your message may automatically be rejected and an error will be \n" +
-  "shown to you in order for you to fix it.\n\n" +
-  "If you have any questions, message the word `faqs` here.\n\nThank you!"
-
-tipsTldr = "Do all fields have to be in order?\n" +
-  "```Yes```\n\n" +
-  "The last part of my `description` is missing after I posted. Why is that?\n" +
-  "```We recommend to shorten your description that would fit no longer than 260 characters. If you go beyond the limit, " +
-  "the excess of your description will be truncated.```\n" +
-  "Is there a way to leave out the `pay range`?\n" +
-  "```As of now, all fields are required to be filled up. You may type in 0 but we hold no responsibility for the " +
-  "accuracy of your posting.```\n\n" +
-  "How do I enter a new line?\n" +
-  "```Usually, control+enter```\n\n" +
-  "I am frustrated by the use of new lines. Is there another way?\n" +
-  "```You may separate the fields with a pipe | symbol. It's usually above the enter/return button of your keyboard.```\n\n" +
-  "I love how automated this channel is! How did you do able to make that?\n" +
-  "```The bots did these but we program the bots. You may check our works at https://github.com/phillydev```\n\n" +
-  "Can I contribute to its development?\n" +
-  "```Sure! Pitch your ideas, translate them into 0's and 1's and just submit a pull request.```\n\n" +
-  "Is there a way to revisit back where the formatting guidelines are displayed?\n" +
-  "```Message [intro] excluding the enclosing brackets here```\n\n" +
-  "What if I have a question but it is not answered here?\n" +
-  "```Let's discuss at #meta```"
-
-dmUserSilently = (user, msg) ->
-  robot.http("https://slack.com/api/chat.postEphemeral")
-  .header('Authorization', "Bearer #{process.env.HUBOT_SLACK_TOKEN}")
-  .header('Content-Type', 'application/json')
-  .query
-    token: process.env.HUBOT_SLACK_TOKEN
-    channel: process.env.JOB_POSTING_CHANNEL
-    user: user
-    text: "Hi <@#{user}>! #{msg}"
-  .post()()
-
-dmUserDirectly = (user, msg) ->
-  robot.http("https://slack.com/api/chat.postMessage")
-  .header('Authorization', "Bearer #{process.env.HUBOT_SLACK_TOKEN}")
-  .header('Content-Type', 'application/json')
-  .query
-      token: process.env.HUBOT_SLACK_TOKEN
-      channel: user
-      as_user: false
-      text: msg
-  .post()()
-
-deletePrevMessage = (ts) ->
-  robot.http("https://slack.com/api/chat.delete")
-  .header('Authorization', "Bearer #{process.env.HUBOT_SLACK_TOKEN}")
-  .header('Content-Type', 'application/json')
-  .query
-    token: process.env.JANITOR_USER_TOKEN
-    channel: process.env.JOB_POSTING_CHANNEL
-    ts: ts
-    as_user: true
-  .post()()
-
-reformatJobPosting = (msgId, title, description, company, approxCompanyLink, location, payrange, link) ->
-  robot.http("https://slack.com/api/chat.update")
-  .header('Authorization', "Bearer #{process.env.HUBOT_SLACK_TOKEN}")
-  .header('Content-Type', 'application/json')
-  .query
-    token: process.env.JANITOR_USER_TOKEN
-    channel: process.env.JOB_POSTING_CHANNEL
-    ts: msgId
-    text: " "
-    attachments: JSON.stringify [
-      color: "#36a64f"
-      title: title
-      text: description
-      author_name: company
-      author_link: approxCompanyLink
-      fields: [
-        {title: "Location", value: "<https://www.google.com/maps?q=#{company}+#{location}|#{location}>", short: true},
-        {title: "Pay range", value: "<https://www.google.com/search?q=#{title}+average+salary&btnI|#{payrange}>", short: true}
-      ]
-      actions: [
-        {type: "button", text: ":books: Learn more...", url: link, style: "primary"}
-      ]
-      "unfurl_links": false
-      "unfurl_media": false
-    ]
-  .post()()
+{
+  jobDescriptionFormat
+  dmUserSilently, deletePrevMessage, dmUserDirectly
+  processChannelCommands, privileged, reformatJobPosting
+  welcomeMessage,
+} = require "../script-helpers/job-postings"
 
 module.exports = (robot) ->
 
+  # Let's welcome the newly joined user in #job-postings! Give them the welcome message
+  # which includes the guidelines on how to better enhance their user experience when
+  # posting or applying for job opportunities.
+  #
+  # Note that this is an ephemeral message to the user in the channel, not a direct
+  # message
   robot.adapter.client.on "raw_message", (message) ->
     if message.subtype is "channel_join" and message.channel is process.env.JOB_POSTING_CHANNEL
       dmUserSilently(message.user, welcomeMessage)
 
-  robot.hear /intro/i, (res) ->
-    switch res.message.rawMessage.channel
-      when process.env.JOB_POSTING_CHANNEL
-        deletePrevMessage res.message.id
-        dmUserSilently(res.message.user.id, "I have sent you a direct message.")
-        dmUserDirectly(res.message.user.id, welcomeMessage)
-
-  robot.hear /faqs/i, (res) ->
-    switch res.message.rawMessage.channel
-      when process.env.JOB_POSTING_CHANNEL
-        deletePrevMessage res.message.id
-        dmUserSilently(res.message.user.id, "I have sent you a direct message.")
-        dmUserDirectly(res.message.user.id, tipsTldr)
+  processChannelCommands robot
 
   robot.hear /.*/i, (res) ->
 
+    # If this message is not in #job-postings channel, we should not process this message
+    # and allow it to proceed to where it's being sent unless that channel has been
+    # programmed with similar rules like this
     if res.message.rawMessage.channel is not process.env.JOB_POSTING_CHANNEL
       return
 
     msgId = res.message.id
     userId = res.message.user.id
 
-    if res.message.rawMessage.reply_broadcast?
+    # Allow thread replies to the posting
+    if res.message.rawMessage.reply_broadcast? and not privileged res.message.user.slack
       deletePrevMessage msgId
       dmUserSilently(userId, "Currently, we do not allow broadcasting replies in this channel.")
+      return
 
+    # We shall allow thread replies
     if res.message.rawMessage.thread_ts?
       return
 
-    if res.message.match /(faqs|intro)/i
+    # Allow users to explore the bot's functionality
+    if res.message.match /(faqs|intro|commands|test)/i
+      deletePrevMessage res.message.id
       return
 
-    jobDescriptionFormat = /[\s\w]*[C|c]ompany\s*:\s*(.{1,50})[\|\n][\s\w]*[L|l]ocation\s*:\s*(.{1,50})[\|\n][\s\w]*[P|p]ay *[R|r]ange\s*:\s*([\$]?[\d,]+(?: ?(?:-|to) ?\$?[\d,]+)?\/?(?:hr|wk|mo|yr|hour|week|month|year)?)[\|\n][\s\w]*[J|j]ob *[T|t]itle\s*:\s*(.{5,50})[\|\n][\s\w]*[D|d]escription\s*:\s*((?:.|\n){20,260})(?:.*)[\|\n][\s\w]*[L|l]ink\s*:\s*(.*)[\s\w]*/i
+    # Theoretically, one word is a valid job posting format because one word message
+    # is processed as a command. However, commands are never posted in the public
+    # chat and they are announced as an ephemeral message which means a message that
+    # is only visible to you in slack.
+    if res.message.match /^ *([a-zA-Z0-9_]+)\b *$/i
+      deletePrevMessage msgId
+      dmUserSilently(userId, "Unknown command: #{res.message.text}\n Message 'commands' for usage.", false)
+      return
+
+    # The heart of the #job-postings. This is how the bot should police in the channel.
+    # Have you ever heard the term in lean manufacturing "poke-yoke"? It is simply a
+    # terminology in lean that basically means "fool-proof". And this bot is designed
+    # to keep the idiots from doing wrong without shaming them by the majority of
+    # philly dev. Peace be with all of us"
     if not res.message.match jobDescriptionFormat
+
+      # We'll provide a way to have the admins post without restriction.
+      #
+      # However, one word commands (even though they have whitespaces beside of it)
+      # are processed and are not announced. To prevent that, the admin should
+      # add at least one word after the first word. For example, test hello world.
+      if privileged res.message.user.slack
+        return
+
+      # We are proud to live in the city of brotherly love so don't publicly shame them.
+      # Instead, send a direct message to the poster that the job posting did not meet
+      # the correct formatting to post in the channel. Let them feel that they are still
+      # welcome to post and give them instructions on how to fix it.
       deletePrevMessage msgId
       dmUserSilently(res.message.user.id, "Unfortunately, your job posting has been rejected here. I have sent you a direct message to explain the reasons and how you should fix it. We apologize for this.")
       dmUserDirectly(userId, politeMessageToRecruiter(res.message.text))
 
     else
-      robot.emit 'slack.reaction',
-        message: res.message
-        name: 'white_check_mark'
+
+      # This is the code block where the job posting passed the bot's vetting mechanism.
+      # In short, the job posting is a valid job posting in the #job-postings channel.
+      # Let's attempt to finalize everything before we thank the poster for abiding the
+      # rules.
 
       extracts = res.message.match jobDescriptionFormat
 
@@ -176,11 +94,28 @@ module.exports = (robot) ->
       location = extracts[2]
       payrange = extracts[3]
       title = extracts[4]
-      description = extracts[5] #.replace " ", "\n"
+      description = extracts[5]
       link = extracts[6]
 
+      # Assuming that the poster supplied an actual company name with no typos,
+      # we'll heuristically guess the link to the company website using Google
+      # search's "I'm feeling lucky"
       approxCompanyLink = "https://www.google.com/search?q=#{company}+careers&btnI"
 
+      # You are very welcome. Or maybe not?
+      #
+      # To help the community attract those postings that came with a lot of effort from
+      # recruiters who formatted their postings to the right way, we'll add a little bit
+      # of extra formatting so that it will be easy to read and to better enhance the
+      # experience of job seekers.
+      #
+      # This last step is the icing of the cake
       reformatJobPosting(msgId, title, description, company, approxCompanyLink, location, payrange, link)
 
-
+      # And with a cherry on top. Show a sign of gratitude to the poster who abide
+      # the rules.
+      #
+      # We just simply react with a check mark in a green box to the poster
+      robot.emit 'slack.reaction',
+        message: res.message
+        name: 'white_check_mark'
